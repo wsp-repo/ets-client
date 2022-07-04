@@ -1,26 +1,29 @@
 #!/bin/bash
 
 echo "Remove node_modules & package-lock.json"
-rm -r -f -d ./node_modules ./package-lock.json
+rm -r -f -d ./dist ./node_modules ./package-lock.json
 
 echo "Install dependencies..."
 npm install --save --save-exact \
     @nestjs/common@latest \
     @nestjs/microservices@latest \
-    dotenv@latest \
     rxjs@latest \
     uuid@latest
 
-echo "Install devDependencies..."
+echo "Install dev dependencies..."
 npm install --save-dev --save-exact \
-    @nestjs/testing@latest \
-    @types/jest@latest \
     @types/node@latest \
-    @types/supertest@latest \
+    rimraf@latest \
+    ts-loader@latest \
+    ts-node@latest \
+    tsconfig-paths@latest \
+    typescript@latest
+
+echo "Install linter dependencies..."
+npm install --save-dev --save-exact \
+    @wspro/linter@latest \
     @typescript-eslint/eslint-plugin@latest \
     @typescript-eslint/parser@latest \
-    @wspro/linter@latest \
-    cross-env@latest \
     eslint@latest \
     eslint-config-airbnb-base@latest \
     eslint-config-airbnb-typescript@latest \
@@ -31,15 +34,7 @@ npm install --save-dev --save-exact \
     eslint-plugin-prettier@latest \
     eslint-plugin-simple-import-sort@latest \
     husky@latest \
-    jest@latest \
     lint-staged@latest \
-    prettier@latest \
-    rimraf@latest \
-    supertest@latest \
-    ts-jest@latest \
-    ts-loader@latest \
-    ts-node@latest \
-    tsconfig-paths@latest \
-    typescript@latest
+    prettier@latest
 
 echo "Installed all dependencies"

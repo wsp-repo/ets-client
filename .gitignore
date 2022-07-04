@@ -2,8 +2,5 @@
 node_modules/
 dist/
 
-# Log files
-*.log
-
 # IDE
 .vscode/
