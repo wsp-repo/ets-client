@@ -1,7 +1,7 @@
 import { v4 as generateUuid } from 'uuid';
 
-import { EtsClientCore } from './client.core';
-import { EtsClientKafka } from './client.kafka';
+import { EtsClientKafka } from './clients/kafka';
+import { EtsCore } from './ets.core';
 
 import {
   AnyObject,
@@ -20,7 +20,7 @@ interface SpanDeps {
   thread?: string;
 }
 
-export class EtsClientSpan extends EtsClientCore {
+export class EtsSpan extends EtsCore {
   protected parentUuid?: string;
 
   protected threadUuid!: string;
@@ -55,7 +55,7 @@ export class EtsClientSpan extends EtsClientCore {
   /**
    * Возвращает новый дочерний спан
    */
-  public startSpan(name: string, attrs?: AttrUnit[]): EtsClientSpan {
+  public startSpan(name: string, attrs?: AttrUnit[]): EtsSpan {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     return EtsFactorySpan.startSpan(
       {
@@ -87,7 +87,7 @@ export class EtsClientSpan extends EtsClientCore {
 /**
  * Фабричный класс для использования "под капотом"
  */
-export class EtsFactorySpan extends EtsClientSpan {
+export class EtsFactorySpan extends EtsSpan {
   private constructor(
     protected readonly kafka: EtsClientKafka,
     protected readonly tracer: EtsCoreTracer,
@@ -103,7 +103,7 @@ export class EtsFactorySpan extends EtsClientSpan {
     deps: SpanDeps,
     name: string,
     attrs?: AttrUnit[],
-  ): EtsClientSpan {
+  ): EtsSpan {
     const { kafka, tracer, parent, thread } = deps;
 
     const options = { parent, thread };
@@ -111,13 +111,13 @@ export class EtsFactorySpan extends EtsClientSpan {
 
     newSpan.onStartSpan(name, attrs);
 
-    return newSpan as EtsClientSpan;
+    return newSpan as EtsSpan;
   }
 
   /**
    * Статический метод для восстановления спана из контекста
    */
-  public static loadSpan(deps: SpanDeps, context: SpanContext): EtsClientSpan {
+  public static loadSpan(deps: SpanDeps, context: SpanContext): EtsSpan {
     const { kafka, tracer, thread } = deps;
     const { parent, span } = context;
 
@@ -126,7 +126,7 @@ export class EtsFactorySpan extends EtsClientSpan {
 
     newSpan.onLoadSpan();
 
-    return newSpan as EtsClientSpan;
+    return newSpan as EtsSpan;
   }
 
   /**

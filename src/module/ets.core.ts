@@ -1,4 +1,4 @@
-import { EtsClientKafka } from './client.kafka';
+import { EtsClientKafka } from './clients/kafka';
 
 import {
   AddEventPayload,
@@ -9,7 +9,7 @@ import {
   SetAttrPayload,
 } from '../interfaces';
 
-export class EtsClientCore {
+export class EtsCore {
   constructor(protected readonly kafka: EtsClientKafka) {}
 
   /**
@@ -41,6 +41,7 @@ export class EtsClientCore {
 
   /**
    * Базовые параметры для пайлоада
+   * - переопределяется в наследниках
    */
   protected basePayload(): AnyObject {
     return {};

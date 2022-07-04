@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { v4 as generateUuid } from 'uuid';
 
-import { EtsClientCore } from './client.core';
-import { EtsClientKafka } from './client.kafka';
-import { EtsClientSpan, EtsFactorySpan } from './client.span';
+import { EtsClientKafka } from './clients/kafka';
+import { EtsCore } from './ets.core';
+import { EtsFactorySpan, EtsSpan } from './ets.span';
 
 import {
   AnyObject,
@@ -15,7 +15,7 @@ import {
 import { EtsCoreTracer } from '../interfaces/cores';
 
 @Injectable()
-export class EtsClientTracer extends EtsClientCore implements EtsCoreTracer {
+export class EtsTracer extends EtsCore implements EtsCoreTracer {
   private tracerInited = false;
 
   private readonly tracerUuid!: string;
@@ -36,7 +36,7 @@ export class EtsClientTracer extends EtsClientCore implements EtsCoreTracer {
   /**
    * Инициирует спан из контекста в рамках текущего трейсера
    */
-  public loadSpan(context: SpanContext): EtsClientSpan {
+  public loadSpan(context: SpanContext): EtsSpan {
     this.checkInited();
 
     return EtsFactorySpan.loadSpan(
@@ -48,7 +48,7 @@ export class EtsClientTracer extends EtsClientCore implements EtsCoreTracer {
   /**
    * Создает новый корневой спан в рамках текущего трейсера
    */
-  public startSpan(name: string, attrs?: AttrUnit[]): EtsClientSpan {
+  public startSpan(name: string, attrs?: AttrUnit[]): EtsSpan {
     this.checkInited();
 
     return EtsFactorySpan.startSpan(
