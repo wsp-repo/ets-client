@@ -1,0 +1,33 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "allowUnreachableCode": false,
+    "declaration": false,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "incremental": true,
+    "inlineSourceMap": false,
+    "inlineSources": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false,
+    "noLib": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "./dist",
+    "pretty": true,
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "ES2018",
+    "typeRoots": ["./node_modules/@types"],
+    "useUnknownInCatchVariables": false
+  },
+  "include": ["./src"],
+  "exclude": ["./node_modules", "./dist", "./coverage"]
+}
