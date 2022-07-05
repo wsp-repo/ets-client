@@ -12,7 +12,7 @@ import { Patterns } from '../../interfaces';
 /**
  * Возвращает объект опций kafka-клиента для соединения
  */
-function getClientOptionsForKafkaTransport(): KafkaOptions {
+export function getClientOptionsForKafkaTransport(): KafkaOptions {
   const envBrokers = process.env.KAFKA_BROKERS || 'localhost:9092';
   const groupId = process.env.KAFKA_GROUP_ID || 'ets-server';
   const sepBrokersList = /[ ,;]+/;
