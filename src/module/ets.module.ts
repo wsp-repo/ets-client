@@ -5,8 +5,7 @@ import { EtsTracer } from './ets.tracer';
 
 @Global()
 @Module({
-  exports: [EtsTracer],
-  imports: [EtsClientKafka],
-  providers: [EtsTracer],
+  exports: [EtsClientKafka, EtsTracer],
+  providers: [EtsClientKafka, EtsTracer],
 })
 export class EtsModule {}
