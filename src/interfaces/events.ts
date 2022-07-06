@@ -13,8 +13,7 @@ export interface EventUnit {
 }
 
 export interface AddEventPayload extends EventUnit {
-  span: string;
-  thread: string;
+  span?: string;
+  thread?: string;
   tracer: string;
-  time?: number;
 }

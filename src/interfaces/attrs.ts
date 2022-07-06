@@ -7,5 +7,4 @@ export interface SetAttrPayload extends AttrUnit {
   span?: string;
   thread?: string;
   tracer: string;
-  time?: number;
 }

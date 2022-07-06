@@ -54,7 +54,6 @@ export class EtsSpan extends EtsCore {
     return {
       parent: this.parentUuid,
       span: this.spanUuid,
-      thread: this.threadUuid,
     };
   }
 

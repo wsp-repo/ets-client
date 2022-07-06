@@ -3,16 +3,20 @@ import { AttrUnit } from './attrs';
 export interface SpanContext {
   parent?: string;
   span: string;
-  thread: string;
 }
 
-export interface StartSpanPayload extends SpanContext {
+export interface BaseSpanPayload {
+  thread: string;
+  tracer: string;
+}
+
+export interface StartSpanPayload extends BaseSpanPayload {
   attrs?: AttrUnit[];
   name: string;
 }
 
-export interface LoadSpanPayload extends SpanContext {
+export interface LoadSpanPayload extends BaseSpanPayload {
   attrs?: AttrUnit[];
 }
 
-export type StopSpanPayload = SpanContext;
+export type StopSpanPayload = BaseSpanPayload;
