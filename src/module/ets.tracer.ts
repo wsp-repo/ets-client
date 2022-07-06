@@ -1,21 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { v4 as generateUuid } from 'uuid';
 
-import { EtsClientKafka } from './clients/kafka';
 import { EtsCore } from './ets.core';
 import { EtsFactorySpan, EtsSpan } from './ets.span';
+import { EtsClientKafka } from './kafka/client';
+import { KafkaPatterns } from './kafka/patterns';
 
 import {
   AnyObject,
   AttrUnit,
   InitTracerPayload,
-  Patterns,
   SpanContext,
 } from '../interfaces';
-import { EtsCoreTracer } from '../interfaces/cores';
 
 @Injectable()
-export class EtsTracer extends EtsCore implements EtsCoreTracer {
+export class EtsTracer extends EtsCore {
   private tracerInited = false;
 
   private readonly tracerUuid!: string;
@@ -27,20 +26,13 @@ export class EtsTracer extends EtsCore implements EtsCoreTracer {
   }
 
   /**
-   * Возвращает uuid трейсера
-   */
-  public getUuid(): string {
-    return this.tracerUuid;
-  }
-
-  /**
    * Инициирует спан из контекста в рамках текущего трейсера
    */
   public loadSpan(context: SpanContext): EtsSpan {
     this.checkInited();
 
     return EtsFactorySpan.loadSpan(
-      { kafka: this.kafka, tracer: this },
+      { kafka: this.kafka, tracer: this.tracerUuid },
       context,
     );
   }
@@ -52,7 +44,7 @@ export class EtsTracer extends EtsCore implements EtsCoreTracer {
     this.checkInited();
 
     return EtsFactorySpan.startSpan(
-      { kafka: this.kafka, tracer: this },
+      { kafka: this.kafka, tracer: this.tracerUuid },
       name,
       attrs,
     );
@@ -64,7 +56,7 @@ export class EtsTracer extends EtsCore implements EtsCoreTracer {
   public async initTracer(name: string, attrs?: AttrUnit[]): Promise<void> {
     const payload = this.getPayload<InitTracerPayload>({ attrs, name });
 
-    await this.kafka.send(Patterns.InitTracer, payload);
+    await this.kafka.send(KafkaPatterns.InitTracer, payload);
 
     this.tracerInited = true;
   }

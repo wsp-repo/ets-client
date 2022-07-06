@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 
-import { EtsClientKafka } from './clients/kafka';
 import { EtsTracer } from './ets.tracer';
+import { EtsClientKafka } from './kafka/client';
 
 @Global()
 @Module({

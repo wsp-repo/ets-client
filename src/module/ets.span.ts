@@ -1,26 +1,27 @@
 import { v4 as generateUuid } from 'uuid';
 
-import { EtsClientKafka } from './clients/kafka';
 import { EtsCore } from './ets.core';
+import { EtsClientKafka } from './kafka/client';
+import { KafkaPatterns } from './kafka/patterns';
 
 import {
   AnyObject,
   AttrUnit,
   LoadSpanPayload,
-  Patterns,
   SpanContext,
   StartSpanPayload,
 } from '../interfaces';
-import { EtsCoreTracer } from '../interfaces/cores';
 
 interface SpanDeps {
   kafka: EtsClientKafka;
-  tracer: EtsCoreTracer;
+  tracer: string;
   parent?: string;
   thread?: string;
 }
 
 export class EtsSpan extends EtsCore {
+  protected tracerUuid!: string;
+
   protected parentUuid?: string;
 
   protected threadUuid!: string;
@@ -29,15 +30,20 @@ export class EtsSpan extends EtsCore {
 
   protected constructor(
     protected readonly kafka: EtsClientKafka,
-    protected readonly tracer: EtsCoreTracer,
-    options: { thread?: string; span?: string; parent?: string },
+    options: {
+      tracer: string;
+      thread?: string;
+      span?: string;
+      parent?: string;
+    },
   ) {
     super(kafka);
 
-    const { thread, span, parent } = options;
+    const { thread, span, parent, tracer } = options;
 
     this.threadUuid = thread || generateUuid();
     this.spanUuid = span || generateUuid();
+    this.tracerUuid = tracer;
     this.parentUuid = parent;
   }
 
@@ -48,7 +54,7 @@ export class EtsSpan extends EtsCore {
     return {
       parent: this.parentUuid,
       span: this.spanUuid,
-      tracer: this.tracer.getUuid(),
+      thread: this.threadUuid,
     };
   }
 
@@ -62,7 +68,7 @@ export class EtsSpan extends EtsCore {
         kafka: this.kafka,
         parent: this.spanUuid,
         thread: this.threadUuid,
-        tracer: this.tracer,
+        tracer: this.tracerUuid,
       },
       name,
       attrs,
@@ -73,14 +79,14 @@ export class EtsSpan extends EtsCore {
    * Отправляет трек останова спана
    */
   public stopSpan(): void {
-    this.kafka.emit(Patterns.StopSpan, this.getPayload());
+    this.kafka.emit(KafkaPatterns.StopSpan, this.getPayload());
   }
 
   /**
    * Базовые параметры для пайлоада
    */
   protected basePayload(): AnyObject {
-    return { ...this.getContext(), thread: this.threadUuid };
+    return { ...this.getContext() };
   }
 }
 
@@ -90,10 +96,14 @@ export class EtsSpan extends EtsCore {
 export class EtsFactorySpan extends EtsSpan {
   private constructor(
     protected readonly kafka: EtsClientKafka,
-    protected readonly tracer: EtsCoreTracer,
-    options: { thread?: string; span?: string; parent?: string },
+    options: {
+      thread?: string;
+      span?: string;
+      parent?: string;
+      tracer: string;
+    },
   ) {
-    super(kafka, tracer, options);
+    super(kafka, options);
   }
 
   /**
@@ -106,8 +116,8 @@ export class EtsFactorySpan extends EtsSpan {
   ): EtsSpan {
     const { kafka, tracer, parent, thread } = deps;
 
-    const options = { parent, thread };
-    const newSpan = new EtsFactorySpan(kafka, tracer, options);
+    const options = { parent, thread, tracer };
+    const newSpan = new EtsFactorySpan(kafka, options);
 
     newSpan.onStartSpan(name, attrs);
 
@@ -121,8 +131,8 @@ export class EtsFactorySpan extends EtsSpan {
     const { kafka, tracer, thread } = deps;
     const { parent, span } = context;
 
-    const options = { parent, span, thread };
-    const newSpan = new EtsFactorySpan(kafka, tracer, options);
+    const options = { parent, span, thread, tracer };
+    const newSpan = new EtsFactorySpan(kafka, options);
 
     newSpan.onLoadSpan();
 
@@ -135,7 +145,7 @@ export class EtsFactorySpan extends EtsSpan {
   private onStartSpan(name: string, attrs?: AttrUnit[]): void {
     const payload = this.getPayload<StartSpanPayload>({ attrs, name });
 
-    this.kafka.emit(Patterns.StartSpan, payload);
+    this.kafka.emit(KafkaPatterns.StartSpan, payload);
   }
 
   /**
@@ -144,6 +154,6 @@ export class EtsFactorySpan extends EtsSpan {
   private onLoadSpan(): void {
     const payload = this.getPayload<LoadSpanPayload>();
 
-    this.kafka.emit(Patterns.LoadSpan, payload);
+    this.kafka.emit(KafkaPatterns.LoadSpan, payload);
   }
 }
