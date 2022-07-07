@@ -1,4 +1,4 @@
-import { DEF_KAFKA_PREFIX } from './constants';
+import { KAFKA_PREFIX } from './constants';
 
 export enum KafkaPatterns {
   InitTracer = 'init-tracer',
@@ -13,7 +13,5 @@ export enum KafkaPatterns {
  * Возвращает паттерн с учетом префикса
  */
 export function getPattern(pattern: KafkaPatterns): string {
-  const prefix = String(process.env.KAFKA_PREFIX || '').trim();
-
-  return `${prefix || DEF_KAFKA_PREFIX}:${pattern}`;
+  return `${KAFKA_PREFIX}:${pattern}`;
 }

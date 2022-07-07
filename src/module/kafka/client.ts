@@ -2,12 +2,12 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Client, ClientKafka } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
 
-import { getClientOptionsForKafkaTransport } from './options';
+import { getKafkaOptions } from './options';
 import { getPattern, KafkaPatterns } from './patterns';
 
 @Injectable()
 export class EtsClientKafka implements OnModuleInit {
-  @Client(getClientOptionsForKafkaTransport())
+  @Client(getKafkaOptions())
   private readonly client!: ClientKafka;
 
   /**

@@ -1,4 +1,4 @@
-export { getClientOptionsForKafkaTransport } from './kafka/options';
+export { getKafkaOptions } from './kafka/options';
 export { KafkaPatterns, getPattern } from './kafka/patterns';
 
 export { EtsModule } from './ets.module';
