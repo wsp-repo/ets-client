@@ -1,28 +1,46 @@
-import { Injectable } from '@nestjs/common';
 import { v4 as generateUuid } from 'uuid';
 
 import { EtsCore } from './ets.core';
 import { EtsFactorySpan, EtsSpan } from './ets.span';
 import { EtsClientKafka } from './kafka/client';
-import { KafkaPatterns } from './kafka/patterns';
 
 import {
   AnyObject,
   AttrUnit,
   InitTracerPayload,
+  KafkaTopics,
   SpanContext,
 } from '../interfaces';
 
-@Injectable()
 export class EtsTracer extends EtsCore {
   private tracerInited = false;
 
   private readonly tracerUuid!: string;
 
-  constructor(protected readonly kafka: EtsClientKafka) {
+  private readonly kafka: EtsClientKafka;
+
+  private constructor() {
     super(kafka);
 
     this.tracerUuid = generateUuid();
+  }
+
+  /**
+   * Статический метод создания нового спана
+   */
+  public static startTracer(
+    deps: SpanDeps,
+    name: string,
+    attrs?: AttrUnit[],
+  ): EtsSpan {
+    const { kafka, tracer, parent, thread } = deps;
+
+    const options = { parent, thread, tracer };
+    const newSpan = new EtsFactorySpan(kafka, options);
+
+    newSpan.onStartSpan(name, attrs);
+
+    return newSpan as EtsSpan;
   }
 
   /**
@@ -56,7 +74,7 @@ export class EtsTracer extends EtsCore {
   public async initTracer(name: string, attrs?: AttrUnit[]): Promise<void> {
     const payload = this.getPayload<InitTracerPayload>({ attrs, name });
 
-    await this.kafka.send(KafkaPatterns.InitTracer, payload);
+    await this.kafka.send(KafkaTopics.InitTracer, payload);
 
     this.tracerInited = true;
   }
