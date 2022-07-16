@@ -2,8 +2,7 @@ import { Kafka, Message, Producer } from 'kafkajs';
 
 import { ClientConfig, ClientTopics, KafkaConfig } from '../interfaces';
 
-import { getKafkaConfig } from './config';
-import { DEF_KAFKA_PREFIX } from './constants';
+import { getKafkaConfig, getKafkaTopic } from './config';
 
 export class EtsClientKafka {
   private static instance: EtsClientKafka;
@@ -41,7 +40,7 @@ export class EtsClientKafka {
       acks: -1,
       messages: this.getMessages(data),
       timeout,
-      topic: this.getTopic(topic),
+      topic: getKafkaTopic(topic),
     });
   }
 
@@ -52,17 +51,8 @@ export class EtsClientKafka {
     this.producer.send({
       acks: 1,
       messages: this.getMessages(data),
-      topic: this.getTopic(topic),
+      topic: getKafkaTopic(topic),
     });
-  }
-
-  /**
-   * Возвращает полный топик
-   */
-  private getTopic(topic: ClientTopics): string {
-    const { prefix = DEF_KAFKA_PREFIX } = this.config;
-
-    return `${prefix}:${topic}`;
   }
 
   /**

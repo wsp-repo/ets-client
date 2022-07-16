@@ -1,4 +1,6 @@
-import { ClientConfig, KafkaConfig } from '../interfaces';
+import { Storage } from '@wspro/core';
+
+import { ClientConfig, ClientTopics, KafkaConfig } from '../interfaces';
 
 import {
   DEF_ENV_PREFIX,
@@ -6,6 +8,11 @@ import {
   DEF_KAFKA_GROUP_ID,
   DEF_KAFKA_PREFIX,
 } from './constants';
+
+/**
+ * Инстанс хранения конфига
+ */
+const configStorage = new Storage<Required<KafkaConfig>>();
 
 /**
  * Возвращает готовый объект конфига клиента
@@ -41,7 +48,20 @@ export function getKafkaConfig(
 ): Required<KafkaConfig> {
   const { envPrefix, clientConfig } = config;
 
-  return clientConfig
-    ? getPreparedConfig(clientConfig)
-    : getConfigFromEnv(envPrefix);
+  configStorage.set(
+    clientConfig
+      ? getPreparedConfig(clientConfig)
+      : getConfigFromEnv(envPrefix),
+  );
+
+  return configStorage.get();
+}
+
+/**
+ * Возвращает полный топик
+ */
+export function getKafkaTopic(topic: ClientTopics): string {
+  const { prefix } = configStorage.get();
+
+  return `${prefix}::${topic}`;
 }

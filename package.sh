@@ -5,6 +5,7 @@ rm -r -f -d ./dist ./node_modules ./package-lock.json
 
 echo "Install dependencies..."
 npm install --save --save-exact \
+    @wspro/core@latest \
     kafkajs@latest \
     uuid@latest
 
