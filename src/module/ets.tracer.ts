@@ -10,6 +10,7 @@ import {
   ClientConfig,
   ClientTopics,
   InitTracerPayload,
+  KafkaConfig,
   SpanContext,
 } from '../interfaces';
 
@@ -28,7 +29,7 @@ export class EtsTracer extends EtsCore {
    * Статический метод создания нового спана
    */
   public static async getTracer(options?: {
-    client: ClientConfig;
+    client: ClientConfig<KafkaConfig>;
     tracer: {
       name: string;
       attrs?: AttrUnit[];
