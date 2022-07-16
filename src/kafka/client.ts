@@ -1,8 +1,9 @@
 import { Kafka, Message, Producer } from 'kafkajs';
 
-import { ClientConfig, KafkaConfig, KafkaTopics } from '../interfaces';
+import { ClientConfig, ClientTopics, KafkaConfig } from '../interfaces';
 
-import { getConfigFromEnv } from './config';
+import { getKafkaConfig } from './config';
+import { DEF_KAFKA_PREFIX } from './constants';
 
 export class EtsClientKafka {
   private static instance: EtsClientKafka;
@@ -21,9 +22,7 @@ export class EtsClientKafka {
   ): Promise<EtsClientKafka | undefined> {
     if (this.instance || !config) return this.instance;
 
-    const { envPrefix = 'ETS_', config: kafkaConfig } = config;
-
-    this.instance = new this(kafkaConfig || getConfigFromEnv(envPrefix));
+    this.instance = new this(getKafkaConfig(config));
 
     await this.instance.initClient();
 
@@ -34,12 +33,12 @@ export class EtsClientKafka {
    * Отправка сообщения-запроса
    */
   public send(
-    topic: KafkaTopics,
+    topic: ClientTopics,
     data?: unknown,
     timeout = 10000,
   ): Promise<unknown> {
     return this.producer.send({
-      acks: 0,
+      acks: -1,
       messages: this.getMessages(data),
       timeout,
       topic: this.getTopic(topic),
@@ -49,7 +48,7 @@ export class EtsClientKafka {
   /**
    * Отправка сообщения-события
    */
-  public emit(topic: KafkaTopics, data?: unknown): void {
+  public emit(topic: ClientTopics, data?: unknown): void {
     this.producer.send({
       acks: 1,
       messages: this.getMessages(data),
@@ -60,8 +59,8 @@ export class EtsClientKafka {
   /**
    * Возвращает полный топик
    */
-  private getTopic(topic: KafkaTopics): string {
-    const { prefix = 'wsp-ets' } = this.config;
+  private getTopic(topic: ClientTopics): string {
+    const { prefix = DEF_KAFKA_PREFIX } = this.config;
 
     return `${prefix}:${topic}`;
   }

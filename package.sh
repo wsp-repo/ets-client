@@ -6,7 +6,6 @@ rm -r -f -d ./dist ./node_modules ./package-lock.json
 echo "Install dependencies..."
 npm install --save --save-exact \
     kafkajs@latest \
-    rxjs@latest \
     uuid@latest
 
 echo "Install dev dependencies..."

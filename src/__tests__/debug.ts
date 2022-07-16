@@ -10,7 +10,13 @@ setInterval(() => {}, 60000);
     tracer: {
       name: 'Debug tracer',
     },
+  }).catch((error) => {
+    console.warn('Tracer error: ', error);
+
+    process.exit();
   });
+
+  if (!tracer) return;
 
   tracer.addEvent('tracerEvent1');
 

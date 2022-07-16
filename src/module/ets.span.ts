@@ -1,12 +1,12 @@
 import { v4 as generateUuid } from 'uuid';
 
-import { EtsCore } from './ets.core';
 import { EtsClientKafka } from '../kafka/client';
+import { EtsCore } from './ets.core';
 
 import {
   AnyObject,
   AttrUnit,
-  KafkaTopics,
+  ClientTopics,
   LoadSpanPayload,
   SpanContext,
   StartSpanPayload,
@@ -78,7 +78,7 @@ export class EtsSpan extends EtsCore {
    * Отправляет трек останова спана
    */
   public stopSpan(): void {
-    this.client.emit(KafkaTopics.StopSpan, this.getPayload());
+    this.client.emit(ClientTopics.StopSpan, this.getPayload());
   }
 
   /**
@@ -144,7 +144,7 @@ export class EtsFactorySpan extends EtsSpan {
   private onStartSpan(name: string, attrs?: AttrUnit[]): void {
     const payload = this.getPayload<StartSpanPayload>({ attrs, name });
 
-    this.client.emit(KafkaTopics.StartSpan, payload);
+    this.client.emit(ClientTopics.StartSpan, payload);
   }
 
   /**
@@ -153,6 +153,6 @@ export class EtsFactorySpan extends EtsSpan {
   private onLoadSpan(): void {
     const payload = this.getPayload<LoadSpanPayload>();
 
-    this.client.emit(KafkaTopics.LoadSpan, payload);
+    this.client.emit(ClientTopics.LoadSpan, payload);
   }
 }

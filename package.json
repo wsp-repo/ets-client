@@ -1,6 +1,6 @@
 {
   "name": "@wspro/ets-client",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "ETS Client",
   "author": "https://github.com/wsp-repo/",
   "license": "ISC",
@@ -15,7 +15,6 @@
   ],
   "scripts": {
     "build": "npm run clean && tsc -p tsconfig.json",
-    "build:nest": "nest build",
     "clean": "rimraf dist",
     "format": "prettier --write 'src/**/*.ts'",
     "lint": "eslint 'src/**/*.{ts,js}' --quiet",
@@ -26,7 +25,6 @@
   },
   "dependencies": {
     "kafkajs": "2.1.0",
-    "rxjs": "7.5.6",
     "uuid": "8.3.2"
   },
   "lint-staged": {
@@ -43,7 +41,7 @@
   },
   "prettier": "@wspro/linter/prettier",
   "devDependencies": {
-    "@types/node": "18.0.4",
+    "@types/node": "18.0.5",
     "@typescript-eslint/eslint-plugin": "5.30.6",
     "@typescript-eslint/parser": "5.30.6",
     "@wspro/linter": "1.0.5",

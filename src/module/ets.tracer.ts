@@ -1,16 +1,15 @@
 import { v4 as generateUuid } from 'uuid';
 
+import { EtsClientKafka } from '../kafka/client';
 import { EtsCore } from './ets.core';
 import { EtsFactorySpan, EtsSpan } from './ets.span';
-import { EtsClientKafka } from '../kafka/client';
 
 import {
   AnyObject,
   AttrUnit,
-  EnvPrefix,
+  ClientConfig,
+  ClientTopics,
   InitTracerPayload,
-  KafkaConfig,
-  KafkaTopics,
   SpanContext,
 } from '../interfaces';
 
@@ -29,7 +28,7 @@ export class EtsTracer extends EtsCore {
    * Статический метод создания нового спана
    */
   public static async getTracer(options?: {
-    kafka: EnvPrefix | KafkaConfig;
+    client: ClientConfig;
     tracer: {
       name: string;
       attrs?: AttrUnit[];
@@ -39,9 +38,9 @@ export class EtsTracer extends EtsCore {
       return this.instance;
     }
 
-    const { kafka, tracer } = options;
+    const { client: clientConfig, tracer } = options;
 
-    const client = await EtsClientKafka.getClient(kafka);
+    const client = await EtsClientKafka.getClient(clientConfig);
 
     if (!client) return undefined;
 
@@ -88,6 +87,6 @@ export class EtsTracer extends EtsCore {
   private async initTracer(name: string, attrs?: AttrUnit[]): Promise<void> {
     const payload = this.getPayload<InitTracerPayload>({ attrs, name });
 
-    await this.client.send(KafkaTopics.InitTracer, payload);
+    await this.client.send(ClientTopics.InitTracer, payload);
   }
 }

@@ -4,8 +4,8 @@ import {
   AddEventPayload,
   AnyObject,
   AttrUnit,
+  ClientTopics,
   EventTypes,
-  KafkaTopics,
   SetAttrPayload,
 } from '../interfaces';
 
@@ -20,7 +20,7 @@ export class EtsCore {
       return this.getPayload<SetAttrPayload>(attr);
     });
 
-    this.client.emit(KafkaTopics.SetAttrs, payload);
+    this.client.emit(ClientTopics.SetAttrs, payload);
   }
 
   /**
@@ -29,7 +29,7 @@ export class EtsCore {
   public addEvent(name: string, data?: unknown, type = EventTypes.Event): void {
     const payload = this.getPayload<AddEventPayload>({ data, name, type });
 
-    this.client.emit(KafkaTopics.AddEvent, payload);
+    this.client.emit(ClientTopics.AddEvent, payload);
   }
 
   /**
