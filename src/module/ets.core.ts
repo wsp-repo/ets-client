@@ -1,4 +1,4 @@
-import { EtsClientKafka } from './kafka/client';
+import { EtsClientKafka } from '../kafka/client';
 
 import {
   AddEventPayload,
@@ -10,7 +10,7 @@ import {
 } from '../interfaces';
 
 export class EtsCore {
-  constructor(protected readonly kafka: EtsClientKafka) {}
+  constructor(protected readonly client: EtsClientKafka) {}
 
   /**
    * Выставляет атрибуты трейсера
@@ -20,7 +20,7 @@ export class EtsCore {
       return this.getPayload<SetAttrPayload>(attr);
     });
 
-    this.kafka.emit(KafkaTopics.SetAttrs, payload);
+    this.client.emit(KafkaTopics.SetAttrs, payload);
   }
 
   /**
@@ -29,7 +29,7 @@ export class EtsCore {
   public addEvent(name: string, data?: unknown, type = EventTypes.Event): void {
     const payload = this.getPayload<AddEventPayload>({ data, name, type });
 
-    this.kafka.emit(KafkaTopics.AddEvent, payload);
+    this.client.emit(KafkaTopics.AddEvent, payload);
   }
 
   /**

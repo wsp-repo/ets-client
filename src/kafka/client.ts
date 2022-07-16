@@ -1,6 +1,6 @@
 import { Kafka, Message, Producer } from 'kafkajs';
 
-import { ClientConfig, KafkaTopics } from '../../interfaces';
+import { ClientConfig, KafkaConfig, KafkaTopics } from '../interfaces';
 
 import { getConfigFromEnv } from './config';
 
@@ -11,24 +11,21 @@ export class EtsClientKafka {
 
   private producer!: Producer;
 
-  private constructor(private readonly config: ClientConfig) {}
+  private constructor(private readonly config: KafkaConfig) {}
 
   /**
    * Статический метод создания подключения к кафке
    */
-  public static async newClient(envPrefix: string): Promise<EtsClientKafka>;
-  public static async newClient(config: ClientConfig): Promise<EtsClientKafka>;
-  public static async newClient(options?: unknown): Promise<EtsClientKafka> {
-    if (this.instance) return this.instance;
+  public static async getClient(
+    config?: ClientConfig<KafkaConfig>,
+  ): Promise<EtsClientKafka | undefined> {
+    if (this.instance || !config) return this.instance;
 
-    const clientConfig: ClientConfig =
-      typeof options === 'string'
-        ? getConfigFromEnv(options || 'ETS_')
-        : (options as ClientConfig);
+    const { envPrefix = 'ETS_', config: kafkaConfig } = config;
 
-    this.instance = new this(clientConfig);
+    this.instance = new this(kafkaConfig || getConfigFromEnv(envPrefix));
 
-    await this.instance.initModule();
+    await this.instance.initClient();
 
     return this.instance;
   }
@@ -77,32 +74,18 @@ export class EtsClientKafka {
   }
 
   /**
-   * Обработчик события инициализации
+   * Инициализация соединения с кафкой
    */
-  private async initModule(): Promise<void> {
-    this.initClient();
+  private async initClient(): Promise<void> {
+    const { brokers } = this.config;
 
-    await this.initProducer();
-  }
+    this.client = new Kafka({ brokers });
 
-  /**
-   * Инициализация продюсера
-   */
-  private async initProducer(): Promise<void> {
     this.producer = this.client.producer({
       allowAutoTopicCreation: true,
       idempotent: true,
     });
 
     await this.producer.connect();
-  }
-
-  /**
-   * Инициализация соединения
-   */
-  private initClient(): void {
-    const { brokers } = this.config;
-
-    this.client = new Kafka({ brokers });
   }
 }

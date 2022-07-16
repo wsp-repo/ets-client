@@ -1,4 +1,4 @@
-import { ClientConfig } from '../../interfaces';
+import { KafkaConfig } from '../interfaces';
 
 import {
   DEF_KAFKA_BROKERS,
@@ -9,7 +9,7 @@ import {
 /**
  * Возвращает объект опций для соединения
  */
-export function getConfigFromEnv(envPrefix = 'ETS_'): ClientConfig {
+export function getConfigFromEnv(envPrefix = 'ETS_'): KafkaConfig {
   const brokers =
     process.env[`${envPrefix}KAFKA_BROKERS`]?.trim() || DEF_KAFKA_BROKERS;
 
