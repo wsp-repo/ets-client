@@ -1,38 +1,64 @@
-import { Injectable } from '@nestjs/common';
 import { v4 as generateUuid } from 'uuid';
 
+import { EtsClientKafka } from '../kafka/client';
 import { EtsCore } from './ets.core';
 import { EtsFactorySpan, EtsSpan } from './ets.span';
-import { EtsClientKafka } from './kafka/client';
-import { KafkaPatterns } from './kafka/patterns';
 
 import {
   AnyObject,
   AttrUnit,
+  ClientConfig,
+  ClientTopics,
   InitTracerPayload,
   SpanContext,
 } from '../interfaces';
 
-@Injectable()
 export class EtsTracer extends EtsCore {
-  private tracerInited = false;
+  private static instance: EtsTracer;
 
   private readonly tracerUuid!: string;
 
-  constructor(protected readonly kafka: EtsClientKafka) {
-    super(kafka);
+  private constructor(client: EtsClientKafka) {
+    super(client);
 
     this.tracerUuid = generateUuid();
+  }
+
+  /**
+   * Статический метод создания нового спана
+   */
+  public static async getTracer(options?: {
+    client: ClientConfig;
+    tracer: {
+      name: string;
+      attrs?: AttrUnit[];
+    };
+  }): Promise<EtsTracer | undefined> {
+    if (this.instance || !options) {
+      return this.instance;
+    }
+
+    const { client: clientConfig, tracer } = options;
+
+    const client = await EtsClientKafka.getClient(clientConfig);
+
+    if (!client) return undefined;
+
+    const { name, attrs } = tracer;
+
+    this.instance = new EtsTracer(client);
+
+    await this.instance.initTracer(name, attrs);
+
+    return this.instance;
   }
 
   /**
    * Инициирует спан из контекста в рамках текущего трейсера
    */
   public loadSpan(context: SpanContext): EtsSpan {
-    this.checkInited();
-
     return EtsFactorySpan.loadSpan(
-      { kafka: this.kafka, tracer: this.tracerUuid },
+      { client: this.client, tracer: this.tracerUuid },
       context,
     );
   }
@@ -41,24 +67,11 @@ export class EtsTracer extends EtsCore {
    * Создает новый корневой спан в рамках текущего трейсера
    */
   public startSpan(name: string, attrs?: AttrUnit[]): EtsSpan {
-    this.checkInited();
-
     return EtsFactorySpan.startSpan(
-      { kafka: this.kafka, tracer: this.tracerUuid },
+      { client: this.client, tracer: this.tracerUuid },
       name,
       attrs,
     );
-  }
-
-  /**
-   * Инициализирует трейсер
-   */
-  public async initTracer(name: string, attrs?: AttrUnit[]): Promise<void> {
-    const payload = this.getPayload<InitTracerPayload>({ attrs, name });
-
-    await this.kafka.send(KafkaPatterns.InitTracer, payload);
-
-    this.tracerInited = true;
   }
 
   /**
@@ -69,9 +82,11 @@ export class EtsTracer extends EtsCore {
   }
 
   /**
-   * Проверяет инициализацию трейсера
+   * Инициализирует трейсер
    */
-  private checkInited(): void {
-    if (!this.tracerInited) throw new Error('Not inited');
+  private async initTracer(name: string, attrs?: AttrUnit[]): Promise<void> {
+    const payload = this.getPayload<InitTracerPayload>({ attrs, name });
+
+    await this.client.send(ClientTopics.InitTracer, payload);
   }
 }

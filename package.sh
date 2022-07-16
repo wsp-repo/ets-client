@@ -5,9 +5,7 @@ rm -r -f -d ./dist ./node_modules ./package-lock.json
 
 echo "Install dependencies..."
 npm install --save --save-exact \
-    @nestjs/common@latest \
-    @nestjs/microservices@latest \
-    rxjs@latest \
+    kafkajs@latest \
     uuid@latest
 
 echo "Install dev dependencies..."

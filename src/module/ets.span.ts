@@ -1,19 +1,19 @@
 import { v4 as generateUuid } from 'uuid';
 
+import { EtsClientKafka } from '../kafka/client';
 import { EtsCore } from './ets.core';
-import { EtsClientKafka } from './kafka/client';
-import { KafkaPatterns } from './kafka/patterns';
 
 import {
   AnyObject,
   AttrUnit,
+  ClientTopics,
   LoadSpanPayload,
   SpanContext,
   StartSpanPayload,
 } from '../interfaces';
 
 interface SpanDeps {
-  kafka: EtsClientKafka;
+  client: EtsClientKafka;
   tracer: string;
   parent?: string;
   thread?: string;
@@ -29,7 +29,7 @@ export class EtsSpan extends EtsCore {
   protected spanUuid!: string;
 
   protected constructor(
-    protected readonly kafka: EtsClientKafka,
+    protected readonly client: EtsClientKafka,
     options: {
       tracer: string;
       thread?: string;
@@ -37,7 +37,7 @@ export class EtsSpan extends EtsCore {
       parent?: string;
     },
   ) {
-    super(kafka);
+    super(client);
 
     const { thread, span, parent, tracer } = options;
 
@@ -64,7 +64,7 @@ export class EtsSpan extends EtsCore {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     return EtsFactorySpan.startSpan(
       {
-        kafka: this.kafka,
+        client: this.client,
         parent: this.spanUuid,
         thread: this.threadUuid,
         tracer: this.tracerUuid,
@@ -78,7 +78,7 @@ export class EtsSpan extends EtsCore {
    * Отправляет трек останова спана
    */
   public stopSpan(): void {
-    this.kafka.emit(KafkaPatterns.StopSpan, this.getPayload());
+    this.client.emit(ClientTopics.StopSpan, this.getPayload());
   }
 
   /**
@@ -94,7 +94,7 @@ export class EtsSpan extends EtsCore {
  */
 export class EtsFactorySpan extends EtsSpan {
   private constructor(
-    protected readonly kafka: EtsClientKafka,
+    protected readonly client: EtsClientKafka,
     options: {
       thread?: string;
       span?: string;
@@ -102,7 +102,7 @@ export class EtsFactorySpan extends EtsSpan {
       tracer: string;
     },
   ) {
-    super(kafka, options);
+    super(client, options);
   }
 
   /**
@@ -113,10 +113,10 @@ export class EtsFactorySpan extends EtsSpan {
     name: string,
     attrs?: AttrUnit[],
   ): EtsSpan {
-    const { kafka, tracer, parent, thread } = deps;
+    const { client, tracer, parent, thread } = deps;
 
     const options = { parent, thread, tracer };
-    const newSpan = new EtsFactorySpan(kafka, options);
+    const newSpan = new EtsFactorySpan(client, options);
 
     newSpan.onStartSpan(name, attrs);
 
@@ -127,11 +127,11 @@ export class EtsFactorySpan extends EtsSpan {
    * Статический метод для восстановления спана из контекста
    */
   public static loadSpan(deps: SpanDeps, context: SpanContext): EtsSpan {
-    const { kafka, tracer, thread } = deps;
+    const { client, tracer, thread } = deps;
     const { parent, span } = context;
 
     const options = { parent, span, thread, tracer };
-    const newSpan = new EtsFactorySpan(kafka, options);
+    const newSpan = new EtsFactorySpan(client, options);
 
     newSpan.onLoadSpan();
 
@@ -144,7 +144,7 @@ export class EtsFactorySpan extends EtsSpan {
   private onStartSpan(name: string, attrs?: AttrUnit[]): void {
     const payload = this.getPayload<StartSpanPayload>({ attrs, name });
 
-    this.kafka.emit(KafkaPatterns.StartSpan, payload);
+    this.client.emit(ClientTopics.StartSpan, payload);
   }
 
   /**
@@ -153,6 +153,6 @@ export class EtsFactorySpan extends EtsSpan {
   private onLoadSpan(): void {
     const payload = this.getPayload<LoadSpanPayload>();
 
-    this.kafka.emit(KafkaPatterns.LoadSpan, payload);
+    this.client.emit(ClientTopics.LoadSpan, payload);
   }
 }
